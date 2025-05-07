@@ -1,0 +1,17 @@
+*.DS_Store
+# npm
+node_modules
+package-lock.json
+
+# build
+build/
+main.js
+*.js.map
+*.zip
+dist/
+coverage/
+.nyc_output/
+test-vault/
+
+TODO.md
+

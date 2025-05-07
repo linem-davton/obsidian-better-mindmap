@@ -1,0 +1,11 @@
+{
+  "id": "better-mindmap",
+  "name": "Better Mind Map",
+  "version": "0.0.1",
+  "minAppVersion": "1.5.0",
+  "author": "Utkarsh Raj",
+  "description": "Mind‑map plugin",
+  "authorUrl": "https://obsidian.md",
+  "fundingUrl": "https://obsidian.md/pricing",
+  "isDesktopOnly": false
+}
