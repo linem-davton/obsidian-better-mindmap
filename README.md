@@ -4,21 +4,19 @@ Interactive, **hierarchical mind‑map** view for any Markdown note.
 Built from scratch with ReactFlow and D3‑hierarchy; supports headings + bullet lists, instant refresh when you switch notes, zoom/pan, and draggable nodes.
 
 
-## Features (v1)
+## Features (v1)
 
-| ✔                                                                   | Capability |
-| -------------------------------------------------------------------- | ---------- |
-| **Live graph** of the current note (headings & nested bullet points) |
-| Automatic refresh when the focused editor pane changes               |
-| Smooth pan / zoom (trackpad & mouse‑wheel)                           |
-| Drag nodes to explore large maps                                     |
-| Tidy textbook layout (Reingold–Tilford tree)                         |
-| Dark‑ & light‑theme aware                                            |
+-  **Live graph** of the current note (headings & nested bullet points) 
+- Automatic refresh when the focused editor pane changes
+- Smooth pan / zoom (trackpad & mouse‑wheel)
+- Drag nodes to explore large maps                                     
+- Tidy textbook layout (Reingold–Tilford tree)
+- Dark‑ & light‑theme aware                                            
 
-_(Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node styling)_
+**Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node styling**
 
 
-## Installation
+## Installation
 
 ### Manual
 
@@ -32,7 +30,7 @@ _(Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node stylin
 
 
 
-## Usage
+## Usage
 
 | Action  | Gesture                                     |
 | ------- | ------------------------------------------- |
