@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite build --watch --config vite.config.ts",
     "build": "vite build --config vite.config.ts",
-    "postbuild": "cp -r manifest.json build/* /media/utk/driveE/ObisidanVault/RemoteVault/.obsidian/plugins/better-mindmap/ ",
+    "postbuild": "if [ \"$CI\" != \"true\" ]; then cp -r manifest.json build/*  /media/utk/driveE/ObisidanVault/RemoteVault/.obsidian/plugins/better-mindmap/; fi",
     "test": "vitest run",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
