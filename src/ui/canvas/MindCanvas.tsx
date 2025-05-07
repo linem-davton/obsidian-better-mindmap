@@ -19,7 +19,7 @@ export default function MindCanvas({ tree }: Props) {
     [tree],
   );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(startNodes);
+  const [nodes, , onNodesChange] = useNodesState(startNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(startEdges);
 
   const onConnect = React.useCallback(
