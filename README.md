@@ -56,7 +56,7 @@ scripts/
   test  – vitest unit tests
 ```
 
-## External libraries
+## External libraries
 
 | Lib                                                    | Purpose                        | License    |
 | ------------------------------------------------------ | ------------------------------ | ---------- |
@@ -67,7 +67,8 @@ scripts/
 | [**TypeScript**](https://www.typescriptlang.org/)      | Static typing                  | Apache‑2.0 |
 | *Dev* — **Vitest**, **ESLint**                         | Unit tests & linting           | MIT        |
 
-## Contributing
+
+## Contributing
 
 - Fork → feature branch (feat/<xyz>).
 
@@ -77,6 +78,6 @@ scripts/
 
 - CI (GitHub Actions) runs linter + unit tests.
 
-## License
+## License
 
 MIT © 2025 Utkarsh Raj
