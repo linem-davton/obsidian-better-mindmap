@@ -3,7 +3,6 @@
 Interactive, **hierarchical mind‑map** view for any Markdown note.  
 Built from scratch with ReactFlow and D3‑hierarchy; supports headings + bullet lists, instant refresh when you switch notes, zoom/pan, and draggable nodes.
 
----
 
 ## Features (v1)
 
@@ -18,7 +17,6 @@ Built from scratch with ReactFlow and D3‑hierarchy; supports headings + bu
 
 _(Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node styling)_
 
----
 
 ## Installation
 
@@ -32,7 +30,7 @@ _(Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node stylin
    - Enable **Better‑Mindmap**
 4. Open any Markdown file → Command Palette ► **Open Mind‑Map**.
 
----
+
 
 ## Usage
 
@@ -43,7 +41,7 @@ _(Road‑map: wiki‑links, YAML relations, collapsible sub‑trees, node stylin
 | Center  | `Fit View` button (top‑left)                |
 | Refresh | Mind‑map auto‑updates when you switch notes |
 
----
+
 
 ## Build from source
 
