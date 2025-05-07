@@ -1,4 +1,4 @@
-# Better‑Mindmap (React) — Obsidian Plugin
+# Better‑Mindmap — Obsidian Plugin
 
 Interactive, **hierarchical mind‑map** view for any Markdown note.  
 Built from scratch with ReactFlow and D3‑hierarchy; supports headings + bullet lists, instant refresh when you switch notes, zoom/pan, and draggable nodes.
