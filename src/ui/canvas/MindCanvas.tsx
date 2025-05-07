@@ -10,8 +10,6 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { MindNode } from "../../parser/types";
 import { toReactFlow } from "./toReactFlow";
-import { AppCtx } from "../useApp";
-import { App } from "obsidian";
 
 type Props = { tree: MindNode[] };
 
