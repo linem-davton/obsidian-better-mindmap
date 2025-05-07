@@ -1,10 +1,10 @@
 {
   "id": "better-mindmap",
   "name": "Better Mind Map",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.5.0",
   "author": "Utkarsh Raj",
   "description": "Mind‑map plugin to preview notes",
   "authorUrl": "https://github.com/linem-davton",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
