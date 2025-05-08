@@ -33,7 +33,26 @@
 }
 
 /* selected highlight */
-.react-flow__node.selected {
-  border: 2px solid var(--interactive-accent);
-  box-shadow: 0 0 6px var(--interactive-accent);
+.react-flow__node.selected-node {
+  background-color: var(--interactive-normal);
+  border: 4px solid var(--interactive-accent);
+  box-shadow: 0 0 1px var(--interactive-accent);
+}
+
+/* collapsed nodes get a light fill */
+.react-flow__node.collapsed-node {
+  background-color: var(--background-modifier-secondary);
+  border: 2px dashed var(--background-modifier-border);
+  opacity: 0.85;
+  transition:
+    background-color 150ms ease,
+    opacity 150ms ease;
+}
+
+/* children of the selected node */
+.react-flow__node.selected-child {
+  /* use Obsidian’s muted text color for the border */
+  background-color: var(--interactive-normal);
+  border: 2px solid var(--interactive-normal);
+  box-shadow: 0 0 4px var(--interactive-accent);
 }

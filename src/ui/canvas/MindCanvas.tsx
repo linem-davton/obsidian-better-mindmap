@@ -1,19 +1,23 @@
-// ─── src/ui/Canvas/MindCanvas.tsx ──────────────────────────────────
-import React from "react";
+/* src/ui/Canvas/MindCanvas.tsx */
+import React, { useState, useCallback, useEffect } from "react";
 import ReactFlow, {
+  ReactFlowProvider,
   Background,
   useNodesState,
   useEdgesState,
   addEdge,
-  ReactFlowProvider,
+  Node,
+  OnNodeClick,
+  OnNodeDoubleClick,
 } from "reactflow";
 import "reactflow/dist/style.css";
+
 import { MindNode } from "../../parser/types";
 import { toReactFlow } from "./toReactFlow";
 
 type Props = { tree: MindNode[]; onLinkClick: (target: string) => void };
 
-/* top-level export: provides the zustand context */
+/* Top-level export: provides the zustand context */
 export default function MindCanvas({ tree, onLinkClick }: Props) {
   return (
     <ReactFlowProvider>
@@ -24,37 +28,89 @@ export default function MindCanvas({ tree, onLinkClick }: Props) {
 
 /* actual graph logic ------------------------------------------------*/
 function FlowContent({ tree, onLinkClick }: Props) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<any>[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  // Toggle collapse on double-click
+  const handleNodeDoubleClick: OnNodeDoubleClick = useCallback((_, node) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      return next;
+    });
+  }, []);
+
+  // Set selection on click
+  const handleNodeClick: OnNodeClick = useCallback((_, node) => {
+    setSelectedId(node.id);
+  }, []);
+
+  useEffect(() => {
+    // 1. prune outline based on collapsed
+    const prune = (list: MindNode[]): MindNode[] =>
+      list.map((n) =>
+        collapsed.has(n.id)
+          ? { ...n, children: [] }
+          : { ...n, children: prune(n.children) },
+      );
+    const pruned = prune(tree);
+
+    // 2. compute new layout
     const { nodes: nextNodes, edges: nextEdges } = toReactFlow(
-      tree,
+      pruned,
       onLinkClick,
     );
 
+    // 3. build local child map from nextEdges for descendants
+    const childMap: Record<string, string[]> = {};
+    nextEdges.forEach((e) => {
+      childMap[e.source] = childMap[e.source]
+        ? [...childMap[e.source], e.target]
+        : [e.target];
+    });
+    const descendants = new Set<string>();
+    if (selectedId) {
+      const stack = [selectedId];
+      while (stack.length) {
+        const curr = stack.pop()!;
+        (childMap[curr] || []).forEach((c) => {
+          if (!descendants.has(c)) {
+            descendants.add(c);
+            stack.push(c);
+          }
+        });
+      }
+    }
+
+    // 4. merge nodes, tag classes
     setNodes((prev) => {
       const map = new Map(nextNodes.map((n) => [n.id, n]));
       const out: typeof nextNodes = [];
-
       prev.forEach((old) => {
         const fresh = map.get(old.id);
-        if (!fresh) return; // node removed
+        if (!fresh) return;
         map.delete(old.id);
-
         if (old.data.label !== fresh.data.label) {
-          old.data = { ...old.data, label: fresh.data.label }; // update label
+          old.data = { ...old.data, label: fresh.data.label };
         }
-        old.position = fresh.position; // update position
+        old.position = fresh.position;
         out.push(old);
       });
-
-      out.push(...map.values()); // add truly new nodes
-      return out; // new array ref => ReactFlow re-renders
+      out.push(...map.values());
+      return out.map((n) => {
+        const classes: string[] = [];
+        if (collapsed.has(n.id)) classes.push("collapsed-node");
+        if (n.id === selectedId) classes.push("selected-node");
+        else if (descendants.has(n.id)) classes.push("selected-child");
+        return { ...n, className: classes.join(" ") || undefined };
+      });
     });
 
-    setEdges(nextEdges); // replace edges array
-  }, [tree, setNodes, setEdges]);
+    setEdges(nextEdges);
+  }, [tree, collapsed, selectedId, onLinkClick, setNodes, setEdges]);
 
   return (
     <div className="mindmap-container">
@@ -63,6 +119,8 @@ function FlowContent({ tree, onLinkClick }: Props) {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onConnect={(p) => setEdges((eds) => addEdge(p, eds))}
         fitView
       >
