@@ -28,7 +28,7 @@ export default function MindCanvas({ tree, onLinkClick }: Props) {
 
 /* actual graph logic ------------------------------------------------*/
 function FlowContent({ tree, onLinkClick }: Props) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<any>[]>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<MindNode>[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
