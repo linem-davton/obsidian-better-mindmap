@@ -52,7 +52,12 @@
 /* children of the selected node */
 .react-flow__node.selected-child {
   /* use Obsidian’s muted text color for the border */
-  background-color: var(--interactive-normal);
   border: 2px solid var(--interactive-normal);
   box-shadow: 0 0 4px var(--interactive-accent);
+}
+
+/* highlight edges connected to hovered node */
+.react-flow__edge-path.edge-highlight {
+  stroke: red;
+  stroke-width: 20px;
 }

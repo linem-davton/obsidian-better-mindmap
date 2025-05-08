@@ -112,6 +112,35 @@ function FlowContent({ tree, onLinkClick }: Props) {
     setEdges(nextEdges);
   }, [tree, collapsed, selectedId, onLinkClick, setNodes, setEdges]);
 
+  const handleNodeMouseEnter = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      setEdges((es) =>
+        es.map((e) =>
+          e.source === node.id || e.target === node.id
+            ? {
+                ...e,
+                style: {
+                  ...e.style,
+                  stroke: "var(--interactive-accent)",
+                  strokeWidth: 2,
+                },
+              }
+            : e,
+        ),
+      );
+    },
+    [setEdges],
+  );
+
+  const handleNodeMouseLeave = useCallback(() => {
+    setEdges((es) =>
+      es.map((e) => ({
+        ...e,
+        style: {}, // clear the override
+      })),
+    );
+  }, [setEdges]);
+
   return (
     <div className="mindmap-container">
       <ReactFlow
@@ -121,6 +150,8 @@ function FlowContent({ tree, onLinkClick }: Props) {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         onNodeDoubleClick={handleNodeDoubleClick}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         onConnect={(p) => setEdges((eds) => addEdge(p, eds))}
         fitView
       >
