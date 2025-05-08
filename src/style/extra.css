@@ -4,7 +4,34 @@
   height: 100%;
 }
 
+/* container for the React view (ItemView.containerEl) */
+.mindmap-view-container {
+  height: 100%;
+  overflow: hidden; /* keeps scrollbars off, tames ResizeObserver */
+}
+
 /* all edges: consistent thin stroke */
 .react-flow__edge-path {
   stroke-width: 1.4px;
+}
+
+/* Node look -----------------------------------------------------------*/
+.mindnode {
+  max-width: 260px;
+  padding: 4px 8px;
+  white-space: normal;
+  word-break: break-word;
+
+  /* border & background  */
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); /* subtle lift */
+}
+
+/* shrink GFM check-boxes a bit */
+.mindnode input[type="checkbox"] {
+  pointer-events: none;
+  transform: scale(0.8);
+  margin-right: 4px;
 }

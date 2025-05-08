@@ -12,20 +12,29 @@ export class ReactMindView extends ItemView {
   private root: ReturnType<typeof createRoot> | null = null;
   private activeFile: TFile | null = null;
 
+  // Obsidian Callback
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
   }
 
+  // Obsidian Callback
   getViewType() {
     return VIEW_TYPE;
   }
+
+  // Obsidian Callback
   getDisplayText() {
-    return "Mind‑Map (React)";
+    return this.activeFile ? `${this.activeFile.basename}` : "Mind-Map";
   }
 
+  // Obsidian Callback
+  getIcon() {
+    return "map";
+  }
+
+  // Obsidian Callback
   async onOpen() {
-    this.containerEl.style.height = "100%";
-    this.containerEl.style.overflow = "hidden";
+    this.containerEl.classList.add("mindmap-view-container");
     this.root = createRoot(this.containerEl);
 
     // initial
@@ -38,25 +47,48 @@ export class ReactMindView extends ItemView {
         if (file && file.extension === "md") await this.renderFile(file);
       }),
     );
+
+    this.registerEvent(
+      this.app.workspace.on("editor-change", (editor, view) => {
+        // view is guaranteed to be MarkdownView
+        const file = view.file;
+        if (file && file === this.activeFile) {
+          this.updateTree(editor.getValue()); // repaint instantly
+        }
+      }),
+    );
+
+    /* external file modifications */
+    this.registerEvent(
+      this.app.vault.on("modify", async (file) => {
+        if (file === this.activeFile) {
+          this.updateTree(await this.app.vault.cachedRead(file));
+        }
+      }),
+    );
   }
 
-  /* unchanged helper */
+  /* helper */
   private async renderFile(file: TFile) {
     if (file === this.activeFile) return;
     this.activeFile = file;
+    this.leaf.updateHeader();
 
-    const md = await this.app.vault.read(file);
+    const md = await this.app.vault.cachedRead(file);
+    await this.updateTree(md);
+  }
+
+  private async updateTree(md: string) {
     const tree = parseOutline(md);
 
     const root: MindNode = {
       id: "root",
-      text: file.basename,
+      text: this.activeFile!.basename,
       level: 0,
       children: tree,
     };
 
-    // key = file.path  → remounts MindCanvas, guarantees fresh layout
-    this.root!.render(<MindCanvas key={file.path} tree={[root]} />);
+    this.root!.render(<MindCanvas key={this.activeFile!.path} tree={[root]} />);
   }
 
   async onClose() {

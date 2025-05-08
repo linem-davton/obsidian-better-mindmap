@@ -2,82 +2,68 @@
  
  Headings (# … – ###### …) → level = heading depth‑1.
 
-Bullets (-, *, +) → level relative to current heading; indent width = 2/4 spaces or tab.
-
-Ignore paragraphs / code blocks / tables.
-Stop at HTML comments <!-- mindmap‑ignore‑start -->
- 
- */
-
 /* ---------- src/parser/parseOutline.ts ---------- */
 import { MindNode } from "./types";
 
-function indentUnits(whitespace: string) {
-  const len = whitespace.replace(/\t/g, "    ").length;
-  return Math.floor(len / 2); // 2 spaces → +1 level
+/* 2 spaces (or 1 tab=4 spaces) = one bullet level */
+function indentUnits(wh: string) {
+  return Math.floor(wh.replace(/\t/g, "    ").length / 2);
 }
+
+/* Build an ID like "0-2-1" = root → 3rd child → 2nd grand-child */
+function childId(parentId: string, index: number) {
+  return parentId ? `${parentId}-${index}` : `${index}`;
+}
+
 export function parseOutline(md: string): MindNode[] {
-  const root: MindNode = {
-    id: crypto.randomUUID(),
-    text: "ROOT",
-    level: 0,
-    children: [],
-  };
-  const stack: MindNode[] = [root];
-  let bulletBaseDepth = 1;
+  const root: MindNode = { id: "", text: "ROOT", level: 0, children: [] };
+  const stack: MindNode[] = [root]; // node chain for each depth
+  let bulletBaseDepth = 1; // bullets hang under last heading
 
-  const lines = md.split("\n");
-  for (let raw of lines) {
-    // ← declare loop variable
-    let line = raw; // make mutable copy
-    let link: string | undefined;
+  md.split("\n").forEach((raw) => {
+    let line = raw.trimEnd();
+    if (!line) return; // skip empty lines
 
-    /* wikilink ------------------------------------------------------ */
-    const wiki = line.match(/\[\[([^\]]+?)\]\]/);
-    if (wiki) {
-      link = wiki[1];
-      line = line.replace(wiki[0], link); // strip brackets for display
-    }
-
-    /* heading ------------------------------------------------------- */
+    /* -------- headings ------------------------------------------------ */
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
-      const depth = h[1].length; // H1 → depth 1
-      stack.length = depth;
+      const depth = h[1].length; // H1 => depth 1
+      stack.length = depth; // cut stack to parent level
+      const parent = stack[depth - 1];
+      const index = parent.children.length;
       const node: MindNode = {
-        id: crypto.randomUUID(),
+        id: childId(parent.id, index),
         text: h[2].trim(),
-        link,
         level: depth,
         children: [],
       };
-      stack[depth - 1].children.push(node);
+      parent.children.push(node);
       stack.push(node);
-      bulletBaseDepth = stack.length;
-      continue;
+      bulletBaseDepth = depth + 1; // bullets nest under this
+      return;
     }
 
-    /* bullet -------------------------------------------------------- */
+    /* -------- bullets ------------------------------------------------- */
     const li = line.match(/^(\s*)[-*+]\s+(.*)$/);
     if (li) {
       const indent = indentUnits(li[1]);
-      let depth = bulletBaseDepth + indent;
+      let depth = bulletBaseDepth + indent; // absolute depth
       if (depth > stack.length) depth = stack.length;
 
       const parent = stack[depth - 1];
+      const index = parent.children.length;
       const node: MindNode = {
-        id: crypto.randomUUID(),
+        id: childId(parent.id, index),
         text: li[2].trim(),
-        link,
         level: depth,
         children: [],
       };
 
       parent.children.push(node);
-      stack.length = depth;
+      stack.length = depth; // truncate to parent + push
       stack.push(node);
     }
-  }
+  });
 
-  return root.children;
+  return root.children; // caller adds filename root
 }
