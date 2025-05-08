@@ -15,23 +15,25 @@
   stroke-width: 1.4px;
 }
 
-/* Node look -----------------------------------------------------------*/
-.mindnode {
-  max-width: 260px;
-  padding: 4px 8px;
-  white-space: normal;
-  word-break: break-word;
-
-  /* border & background  */
+/* base look for every mind-map node */
+.react-flow__node {
+  color: var(--text-normal); /* ← theme-aware text color */
+  background: var(--background-secondary);
   border: 1px solid var(--divider);
   border-radius: 6px;
-  background: var(--background-secondary);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); /* subtle lift */
+  transition:
+    border-color 80ms ease,
+    box-shadow 80ms ease;
 }
 
-/* shrink GFM check-boxes a bit */
-.mindnode input[type="checkbox"] {
-  pointer-events: none;
-  transform: scale(0.8);
-  margin-right: 4px;
+/* hover highlight */
+.react-flow__node:hover {
+  border: 2px solid var(--interactive-accent);
+  box-shadow: 0 0 4px var(--interactive-accent);
+}
+
+/* selected highlight */
+.react-flow__node.selected {
+  border: 2px solid var(--interactive-accent);
+  box-shadow: 0 0 6px var(--interactive-accent);
 }
