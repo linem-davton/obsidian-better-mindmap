@@ -7,6 +7,7 @@ import MindCanvas from "../ui/canvas/MindCanvas";
 import { MindNode } from "../parser/types";
 import { VIEW_TYPE } from "../constants";
 
+// Has Depedency on Obsidian
 export class ReactMindView extends ItemView {
   private root: ReturnType<typeof createRoot> | null = null;
   private activeFile: TFile | null = null;

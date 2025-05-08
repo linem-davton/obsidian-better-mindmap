@@ -28,7 +28,7 @@ export default function MindCanvas({ tree }: Props) {
   );
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div className="mindmap-container">
       <ReactFlow
         nodes={nodes} // ← mark every node as wiki
         edges={edges}
@@ -39,7 +39,6 @@ export default function MindCanvas({ tree }: Props) {
         defaultEdgeOptions={{
           type: ConnectionLineType.Bezier,
           markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-          style: { strokeWidth: 1.4 },
         }}
       >
         <Background />

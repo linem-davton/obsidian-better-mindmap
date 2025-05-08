@@ -1,1 +1,10 @@
+/* full-pane container for ReactFlow canvas */
+.mindmap-container {
+  width: 100%;
+  height: 100%;
+}
 
+/* all edges: consistent thin stroke */
+.react-flow__edge-path {
+  stroke-width: 1.4px;
+}
