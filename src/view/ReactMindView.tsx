@@ -88,8 +88,37 @@ export class ReactMindView extends ItemView {
       children: tree,
     };
 
-    this.root!.render(<MindCanvas key={this.activeFile!.path} tree={[root]} />);
+    this.root!.render(
+      <MindCanvas
+        key={this.activeFile!.path}
+        tree={[root]}
+        onLinkClick={this.linkClickHandler}
+      />,
+    );
   }
+
+  private linkClickHandler = (href: string) => {
+    const external = /^[a-z][a-z\d+\-.]*:/.test(href);
+    if (external) {
+      window.open(href);
+      return;
+    }
+
+    const target = decodeURIComponent(href);
+
+    // find an existing Markdown leaf (excluding the mind-map itself)
+    const mdLeaves = this.app.workspace.getLeavesOfType("markdown");
+    const other = mdLeaves.find((l) => l !== this.leaf);
+
+    if (other) {
+      // open in that existing leaf
+      this.app.workspace.openLinkText(target, "", false, other);
+    } else {
+      // no other leaf → split this mind-map leaf vertically
+      const newLeaf = this.app.workspace.splitActiveLeaf("vertical");
+      this.app.workspace.openLinkText(target, "", false, newLeaf);
+    }
+  };
 
   async onClose() {
     this.root?.unmount();

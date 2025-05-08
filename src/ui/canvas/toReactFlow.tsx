@@ -1,0 +1,99 @@
+// src/ui/Canvas/toReactFlow.tsx
+import React from "react";
+import dagre from "dagre";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm";
+import { MindNode } from "../../parser/types";
+import { Node, Edge } from "reactflow";
+
+export function toReactFlow(
+  children: MindNode[],
+  onLinkClick: (target: string) => void,
+) {
+  /* 1 ─ build a dagre graph */
+  const g = new dagre.graphlib.Graph().setGraph({
+    ranksep: 80, // vertical gap
+    nodesep: 40, // horizontal gap
+  });
+
+  g.setDefaultNodeLabel(() => ({}));
+  g.setDefaultEdgeLabel(() => ({}));
+
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  /* helper to walk the MindNode tree */
+  const walk = (n: MindNode, parent?: MindNode) => {
+    const WIDTH = 180; // approximate box size
+    const HEIGHT = 48;
+    g.setNode(n.id, { width: WIDTH, height: HEIGHT, label: n.text });
+
+    if (parent) g.setEdge(parent.id, n.id);
+
+    n.children.forEach((c) => walk(c, n));
+  };
+
+  /* root wrapper so top-level array works */
+  const fakeRoot: MindNode = { id: "_root", text: "", level: 0, children };
+  fakeRoot.children.forEach((c) => walk(c, fakeRoot));
+
+  /* 2 ─ compute layout */
+  dagre.layout(g);
+
+  /* 3 ─ convert dagre graph → ReactFlow data */
+  g.nodes().forEach((id) => {
+    if (id === "_root") return; // skip fake root
+    const { x, y, label } = g.node(id);
+    const md = wikiToMd(label);
+    nodes.push({
+      id,
+      position: { x, y },
+      data: {
+        label: (
+          <ReactMarkdown
+            remarkPlugins={[gfm]}
+            components={{
+              a: ({ href, children }) => (
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onLinkClick(href!);
+                  }}
+                  style={{ cursor: "pointer", textDecoration: "underline" }}
+                >
+                  {children}
+                </a>
+              ),
+            }}
+          >
+            {md}
+          </ReactMarkdown>
+        ),
+      },
+    });
+  });
+
+  g.edges().forEach(({ v, w }) => {
+    if (v === "_root") return; // edges from fake root ignored
+    edges.push({ id: `${v}-${w}`, source: v, target: w });
+  });
+
+  return { nodes, edges };
+}
+
+/**
+ * Convert Obsidian-style [[Link|Alias]] into Markdown [Alias](Link),
+ * URI-encoding the target so spaces/specials don’t break link syntax.
+ */
+function wikiToMd(raw: string): string {
+  return raw.replace(
+    /\[\[([^\|\]]+?)(?:\|([^\]]+?))?\]\]/g,
+    (_match, target, alias) => {
+      const label = alias || target;
+      // encode spaces/special chars so Markdown sees a valid link
+      const href = encodeURI(target.trim());
+      return `[${label}](${href})`;
+    },
+  );
+}

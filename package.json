@@ -26,7 +26,10 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
+    "d3-flextree": "^2.1.2",
+    "d3-force": "^3.0.0",
     "d3-hierarchy": "^3.1.2",
+    "dagre": "^0.8.5",
     "react-markdown": "^10.1.0",
     "reactflow": "^11.11.4",
     "remark-gfm": "^4.0.1"

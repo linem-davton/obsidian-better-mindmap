@@ -5,31 +5,33 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  ReactFlowProvider, // <-- add
+  ReactFlowProvider,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { MindNode } from "../../parser/types";
 import { toReactFlow } from "./toReactFlow";
 
-type Props = { tree: MindNode[] };
+type Props = { tree: MindNode[]; onLinkClick: (target: string) => void };
 
 /* top-level export: provides the zustand context */
-export default function MindCanvas({ tree }: Props) {
+export default function MindCanvas({ tree, onLinkClick }: Props) {
   return (
     <ReactFlowProvider>
-      <FlowContent tree={tree} />
+      <FlowContent tree={tree} onLinkClick={onLinkClick} />
     </ReactFlowProvider>
   );
 }
 
 /* actual graph logic ------------------------------------------------*/
-/* actual graph logic ------------------------------------------------*/
-function FlowContent({ tree }: { tree: MindNode[] }) {
+function FlowContent({ tree, onLinkClick }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   React.useEffect(() => {
-    const { nodes: nextNodes, edges: nextEdges } = toReactFlow(tree);
+    const { nodes: nextNodes, edges: nextEdges } = toReactFlow(
+      tree,
+      onLinkClick,
+    );
 
     setNodes((prev) => {
       const map = new Map(nextNodes.map((n) => [n.id, n]));
