@@ -5,7 +5,6 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  useReactFlow,
   ReactFlowProvider, // <-- add
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -34,7 +33,7 @@ function FlowContent({ tree }: { tree: MindNode[] }) {
 
     setNodes((prev) => {
       const map = new Map(nextNodes.map((n) => [n.id, n]));
-      const out: any[] = [];
+      const out: typeof nextNodes = [];
 
       prev.forEach((old) => {
         const fresh = map.get(old.id);
