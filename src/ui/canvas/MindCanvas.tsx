@@ -2,11 +2,11 @@
 import React from "react";
 import ReactFlow, {
   Background,
-  addEdge,
   useNodesState,
   useEdgesState,
-  ReactFlowProvider,
+  addEdge,
   useReactFlow,
+  ReactFlowProvider, // <-- add
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { MindNode } from "../../parser/types";
@@ -14,6 +14,7 @@ import { toReactFlow } from "./toReactFlow";
 
 type Props = { tree: MindNode[] };
 
+/* top-level export: provides the zustand context */
 export default function MindCanvas({ tree }: Props) {
   return (
     <ReactFlowProvider>
@@ -22,6 +23,8 @@ export default function MindCanvas({ tree }: Props) {
   );
 }
 
+/* actual graph logic ------------------------------------------------*/
+/* actual graph logic ------------------------------------------------*/
 function FlowContent({ tree }: { tree: MindNode[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -29,28 +32,27 @@ function FlowContent({ tree }: { tree: MindNode[] }) {
   React.useEffect(() => {
     const { nodes: nextNodes, edges: nextEdges } = toReactFlow(tree);
 
-    /* Merge: keep previous node object if nothing but position changed */
-    setNodes((prev) =>
-      nextNodes.map((n) => {
-        const old = prev.find((p) => p.id === n.id);
-        // if label and type unchanged, just copy new position into old object
-        if (old && old.data.label === n.data.label && old.type === n.type) {
-          old.position = n.position; // mutate in place
-          return old;
-        }
-        return n; // new or changed node
-      }),
-    );
+    setNodes((prev) => {
+      const map = new Map(nextNodes.map((n) => [n.id, n]));
+      const out: any[] = [];
 
-    /* Edges: they only change when structure changes */
-    setEdges((prev) => {
-      if (
-        prev.length === nextEdges.length &&
-        prev.every((e, i) => e.id === nextEdges[i].id)
-      )
-        return prev; // re-use old array
-      return nextEdges;
+      prev.forEach((old) => {
+        const fresh = map.get(old.id);
+        if (!fresh) return; // node removed
+        map.delete(old.id);
+
+        if (old.data.label !== fresh.data.label) {
+          old.data = { ...old.data, label: fresh.data.label }; // update label
+        }
+        old.position = fresh.position; // update position
+        out.push(old);
+      });
+
+      out.push(...map.values()); // add truly new nodes
+      return out; // new array ref => ReactFlow re-renders
     });
+
+    setEdges(nextEdges); // replace edges array
   }, [tree, setNodes, setEdges]);
 
   return (
