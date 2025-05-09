@@ -15,10 +15,21 @@ export function toReactFlow(
   children: MindNode[],
   onLinkClick: (target: string) => void,
 ) {
+  const { width: WIDTH, height: HEIGHT } = getReactFlowNodeSizeFromCSS();
+  const style = getComputedStyle(document.documentElement);
+
+  const ranksepMultiplier =
+    parseFloat(style.getPropertyValue("--mindmap-ranksep-multiplier")) || 2.5;
+  const nodesepMultiplier =
+    parseFloat(style.getPropertyValue("--mindmap-nodesep-multiplier")) || 0.6;
+
+  const RANKSEP = HEIGHT * ranksepMultiplier;
+  const NODESEP = WIDTH * nodesepMultiplier;
+
   /* 1 ─ build a dagre graph */
   const g = new dagre.graphlib.Graph().setGraph({
-    ranksep: 80, // vertical gap
-    nodesep: 40, // horizontal gap
+    ranksep: RANKSEP, // vertical gap
+    nodesep: NODESEP, // horizontal gap
   });
 
   g.setDefaultNodeLabel(() => ({}));
@@ -29,8 +40,6 @@ export function toReactFlow(
 
   /* helper to walk the MindNode tree */
   const walk = (n: MindNode, parent?: MindNode) => {
-    const WIDTH = 180; // approximate box size
-    const HEIGHT = 48;
     g.setNode(n.id, { width: WIDTH, height: HEIGHT, label: n.text });
 
     if (parent) g.setEdge(parent.id, n.id);
@@ -102,4 +111,21 @@ function wikiToMd(raw: string): string {
       return `[${label}](${href})`;
     },
   );
+}
+
+export function getReactFlowNodeSizeFromCSS(): {
+  width: number;
+  height: number;
+} {
+  const style = getComputedStyle(document.documentElement);
+  const widthStr = style.getPropertyValue("--mindmap-node-width").trim();
+  const heightStr = style.getPropertyValue("--mindmap-node-height").trim();
+
+  const width = parseFloat(widthStr);
+  const height = parseFloat(heightStr);
+
+  return {
+    width: isNaN(width) ? 240 : width,
+    height: isNaN(height) ? 48 : height,
+  };
 }

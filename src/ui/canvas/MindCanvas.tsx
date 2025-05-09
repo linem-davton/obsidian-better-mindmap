@@ -72,17 +72,20 @@ function FlowContent({ tree, onLinkClick }: Props) {
         ? [...childMap[e.source], e.target]
         : [e.target];
     });
+    // Highlight all Childnoes and edges
     const descendants = new Set<string>();
+    const edgeIdsToHighlight = new Set<string>();
     if (selectedId) {
       const stack = [selectedId];
       while (stack.length) {
         const curr = stack.pop()!;
-        (childMap[curr] || []).forEach((c) => {
-          if (!descendants.has(c)) {
-            descendants.add(c);
-            stack.push(c);
+        for (const child of childMap[curr] || []) {
+          if (!descendants.has(child)) {
+            descendants.add(child);
+            stack.push(child);
+            edgeIdsToHighlight.add(`${curr}-${child}`);
           }
-        });
+        }
       }
     }
 
@@ -110,7 +113,12 @@ function FlowContent({ tree, onLinkClick }: Props) {
       });
     });
 
-    setEdges(nextEdges);
+    setEdges(
+      nextEdges.map((e) => ({
+        ...e,
+        className: edgeIdsToHighlight.has(e.id) ? "selected-edge" : undefined,
+      })),
+    );
   }, [tree, collapsed, selectedId, onLinkClick, setNodes, setEdges]);
 
   const handleNodeMouseEnter = useCallback(

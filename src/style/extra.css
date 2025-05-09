@@ -1,3 +1,10 @@
+:root {
+  --mindmap-node-width: 240px;
+  --mindmap-node-height: 96px;
+  --mindmap-ranksep-multiplier: 1.2;
+  --mindmap-nodesep-multiplier: 0.2;
+}
+
 /* full-pane container for ReactFlow canvas */
 .mindmap-container {
   width: 100%;
@@ -20,10 +27,18 @@
   color: var(--text-normal); /* ← theme-aware text color */
   background: var(--background-secondary);
   border: 1px solid var(--divider);
+  font-family: var(--font-text);
   border-radius: 6px;
   transition:
     border-color 80ms ease,
     box-shadow 80ms ease;
+
+  width: var(--mindmap-node-width);
+  height: auto;
+  font-size: var(--editor-font-size);
+  padding: 4px;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* hover highlight */
@@ -52,12 +67,16 @@
 /* children of the selected node */
 .react-flow__node.selected-child {
   /* use Obsidian’s muted text color for the border */
-  border: 2px solid var(--interactive-normal);
-  box-shadow: 0 0 4px var(--interactive-accent);
+  border: 2px solid var(--interactive-accent);
 }
 
 /* highlight edges connected to hovered node */
 .react-flow__edge-path.edge-highlight {
   stroke: red;
   stroke-width: 20px;
+}
+
+.react-flow__edge.selected-edge path {
+  stroke: var(--interactive-accent);
+  stroke-width: 2px;
 }
