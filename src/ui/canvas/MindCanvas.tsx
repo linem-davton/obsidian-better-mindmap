@@ -12,13 +12,13 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { MindNode } from "../../parser/types";
+import { MindNode } from "../../parser/parseOutline.ts";
 import { toReactFlow } from "./toReactFlow";
 
 type Props = { tree: MindNode[]; onLinkClick: (target: string) => void };
 
 /* Top-level export: provides the zustand context */
-export default function MindCanvas({ tree, onLinkClick }: Props) {
+export function MindCanvas({ tree, onLinkClick }: Props) {
   return (
     <ReactFlowProvider>
       <FlowContent tree={tree} onLinkClick={onLinkClick} />
