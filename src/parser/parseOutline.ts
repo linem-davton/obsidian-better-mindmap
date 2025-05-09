@@ -2,13 +2,29 @@
 // I. COMMON TYPES & UTILITIES
 // ---------------------------------------------------------------------------------
 
+export type NodeKind =
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "h5"
+  | "h6"
+  | "bullet"
+  | "image"
+  | "quote"
+  | "code"
+  | "task"
+  | "link"
+  | "unknown"
+  | "math";
+
 export interface MindNode {
   id: string;
   text: string;
   level: number;
+  kind: NodeKind;
   children: MindNode[];
 }
-
 export function childId(parentId: string, index: number): string {
   return parentId ? `${parentId}-${index}` : `${index}`;
 }
@@ -146,6 +162,7 @@ export function parseOutline(
         id: childId(determinedParentNode.id, index),
         text: parsedHeading.text,
         level: newHeadingNodeLevel,
+        kind: `h${newHeadingNodeLevel}` as NodeKind,
         children: [],
       };
 
@@ -177,6 +194,7 @@ export function parseOutline(
         id: childId(parentNode.id, index),
         text: parsedBullet.text,
         level: bulletNodeLevel,
+        kind: "bullet",
         children: [],
       };
 

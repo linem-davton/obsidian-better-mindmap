@@ -27,6 +27,7 @@ export function MindCanvas({ tree, onLinkClick }: Props) {
 }
 
 /* actual graph logic ------------------------------------------------*/
+// Handles Node collapse, highlight on select, and Mouse Hover logic
 function FlowContent({ tree, onLinkClick }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<MindNode>[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
