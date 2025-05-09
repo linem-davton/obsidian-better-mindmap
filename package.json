@@ -30,8 +30,11 @@
     "d3-force": "^3.0.0",
     "d3-hierarchy": "^3.1.2",
     "dagre": "^0.8.5",
+    "katex": "^0.16.22",
     "react-markdown": "^10.1.0",
     "reactflow": "^11.11.4",
-    "remark-gfm": "^4.0.1"
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
   }
 }

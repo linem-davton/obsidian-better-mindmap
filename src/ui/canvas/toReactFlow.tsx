@@ -3,8 +3,13 @@ import React from "react";
 import dagre from "dagre";
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
-import { MindNode } from "../../parser/types";
+import { MindNode } from "../../parser/parseOutline.ts";
 import { Node, Edge } from "reactflow";
+
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+
+import "katex/dist/katex.min.css";
 
 export function toReactFlow(
   children: MindNode[],
@@ -51,7 +56,8 @@ export function toReactFlow(
       data: {
         label: (
           <ReactMarkdown
-            remarkPlugins={[gfm]}
+            remarkPlugins={[gfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
             components={{
               a: ({ href, children }) => (
                 <a
