@@ -2,6 +2,10 @@
 
 Visualize your Markdown outlines as interactive, dynamic mind maps within Obsidian. This plugin provides enhanced navigation, layout customization, and spacing controls directly within the mind map view.
 
+![Screenshot Full Screen View](images/screenshot-Fullscreen.png)
+
+![Split Screen View](images/screenshot-SplitView.png)
+
 ## Features
 
 - **Visualize Markdown Outlines:** Automatically generates a mind map from the heading structure / bullet points of your active Markdown file.
