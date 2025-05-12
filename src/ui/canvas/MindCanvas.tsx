@@ -9,11 +9,13 @@ import ReactFlow, {
   Node,
   OnNodeClick,
   OnNodeDoubleClick,
+  Panel,
+  useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
 import { MindNode } from "../../parser/parseOutline.ts";
-import { toReactFlow } from "./toReactFlow";
+import { toReactFlow, LayoutDirection } from "./toReactFlow";
 
 type Props = {
   tree: MindNode[];
@@ -41,6 +43,8 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>("TB");
+  const reactFlowInstance = useReactFlow(); // Get instance for fitView
 
   // Toggle collapse on double-click
   const handleNodeDoubleClick: OnNodeDoubleClick = useCallback((_, node) => {
@@ -59,10 +63,8 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
 
   // --- Reset View Logic ---
   useEffect(() => {
-    console.log(resetViewTrigger, typeof resetViewTrigger);
     // Only run if the trigger prop is a number and > 0 (avoid initial mount)
     if (typeof resetViewTrigger === "number" && resetViewTrigger > 0) {
-      console.log("ReactFlow: Resetting view trigger.", resetViewTrigger);
       setCollapsed(new Set());
       setSelectedId(null);
     }
@@ -82,6 +84,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
     const { nodes: nextNodes, edges: nextEdges } = toReactFlow(
       pruned,
       onLinkClick,
+      layoutDirection,
     );
 
     // 3. build local child map from nextEdges for descendants
@@ -138,7 +141,18 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
         className: edgeIdsToHighlight.has(e.id) ? "selected-edge" : undefined,
       })),
     );
-  }, [tree, collapsed, selectedId, onLinkClick, setNodes, setEdges]);
+    setTimeout(() => {
+      reactFlowInstance.fitView({ duration: 400, padding: 0.1 }); // Adjust duration/padding
+    }, 100); // Adjust timeout if needed (50-100ms is usually good)
+  }, [
+    tree,
+    collapsed,
+    selectedId,
+    onLinkClick,
+    layoutDirection,
+    setNodes,
+    setEdges,
+  ]);
 
   const handleNodeMouseEnter = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -169,6 +183,16 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
     );
   }, [setEdges]);
 
+  // --- Toggle Layout Handler ---
+  const handleLayoutToggle = useCallback(() => {
+    setLayoutDirection((currentDirection) =>
+      currentDirection === "TB" ? "LR" : "TB",
+    );
+  }, []);
+
+  const toggleButtonText =
+    layoutDirection === "TB" ? "Horizontal Layout" : "Vertical Layout";
+
   return (
     <div className="mindmap-container">
       <ReactFlow
@@ -184,6 +208,16 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
         fitView
       >
         <Background />
+        <Panel position="top-left" className="mindmap-layout-controls">
+          <Panel position="top-left" className="mindmap-layout-controls">
+            <button
+              onClick={handleLayoutToggle}
+              title={toggleButtonText} // Add tooltip
+            >
+              {toggleButtonText}
+            </button>
+          </Panel>
+        </Panel>
       </ReactFlow>
     </div>
   );

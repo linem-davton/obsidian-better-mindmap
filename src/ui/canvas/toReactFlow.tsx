@@ -11,9 +11,12 @@ import rehypeKatex from "rehype-katex";
 
 import "katex/dist/katex.min.css";
 
+export type LayoutDirection = "TB" | "LR";
+
 export function toReactFlow(
   children: MindNode[],
   onLinkClick: (target: string) => void,
+  layoutDirection: LayoutDirection = "TB",
 ) {
   const { width: WIDTH, height: HEIGHT } = getReactFlowNodeSizeFromCSS();
   const style = getComputedStyle(document.documentElement);
@@ -28,6 +31,7 @@ export function toReactFlow(
 
   /* 1 ─ build a dagre graph */
   const g = new dagre.graphlib.Graph().setGraph({
+    rankdir: layoutDirection, // Layout direction
     ranksep: RANKSEP, // vertical gap
     nodesep: NODESEP, // horizontal gap
   });
