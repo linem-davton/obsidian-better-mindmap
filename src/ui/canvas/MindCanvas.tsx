@@ -17,6 +17,9 @@ import "reactflow/dist/style.css";
 import { MindNode } from "../../parser/parseOutline.ts";
 import { toReactFlow, LayoutDirection } from "./toReactFlow";
 
+const DEFAULT_RANKSEP_MULTIPLIER = 2.5;
+const DEFAULT_NODESEP_MULTIPLIER = 0.6;
+
 type Props = {
   tree: MindNode[];
   onLinkClick: (target: string) => void;
@@ -44,6 +47,21 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>("TB");
+
+  // --- State for UI controls and triggering layout updates ---
+  const [ranksepMultiplier, setRanksepMultiplier] = useState<number>(() =>
+    getCssVariableOrDefault(
+      "--mindmap-ranksep-multiplier",
+      DEFAULT_RANKSEP_MULTIPLIER,
+    ),
+  );
+  const [nodesepMultiplier, setNodesepMultiplier] = useState<number>(() =>
+    getCssVariableOrDefault(
+      "--mindmap-nodesep-multiplier",
+      DEFAULT_NODESEP_MULTIPLIER,
+    ),
+  );
+  const [layoutConfigTrigger, setLayoutConfigTrigger] = useState<number>(0); // Trigger state
   const reactFlowInstance = useReactFlow(); // Get instance for fitView
 
   // Toggle collapse on double-click
@@ -150,6 +168,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
     selectedId,
     onLinkClick,
     layoutDirection,
+    layoutConfigTrigger,
     setNodes,
     setEdges,
   ]);
@@ -193,6 +212,31 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const toggleButtonText =
     layoutDirection === "TB" ? "Horizontal Layout" : "Vertical Layout";
 
+  // --- Handlers for UI controls ---
+  const handleRanksepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseFloat(event.target.value);
+    if (!isNaN(newValue)) {
+      setRanksepMultiplier(newValue); // Update local state for slider display
+      document.documentElement.style.setProperty(
+        "--mindmap-ranksep-multiplier",
+        String(newValue),
+      ); // Update CSS var
+      setLayoutConfigTrigger((prev) => prev + 1); // Trigger recalculation
+    }
+  };
+
+  const handleNodesepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseFloat(event.target.value);
+    if (!isNaN(newValue)) {
+      setNodesepMultiplier(newValue); // Update local state for slider display
+      document.documentElement.style.setProperty(
+        "--mindmap-nodesep-multiplier",
+        String(newValue),
+      ); // Update CSS var
+      setLayoutConfigTrigger((prev) => prev + 1); // Trigger recalculation
+    }
+  };
+
   return (
     <div className="mindmap-container">
       <ReactFlow
@@ -208,17 +252,84 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
         fitView
       >
         <Background />
-        <Panel position="top-left" className="mindmap-layout-controls">
-          <Panel position="top-left" className="mindmap-layout-controls">
+        <Panel position="top-left" className="mindmap-controls-panel">
+          <div className="control-group">
             <button
               onClick={handleLayoutToggle}
               title={toggleButtonText} // Add tooltip
             >
               {toggleButtonText}
             </button>
-          </Panel>
+          </div>
+
+          <div className="control-group">
+            <label htmlFor="ranksep-slider">
+              Rank Sep (
+              {(typeof ranksepMultiplier === "number"
+                ? ranksepMultiplier
+                : DEFAULT_RANKSEP_MULTIPLIER
+              ).toFixed(1)}
+              )
+            </label>
+            <input
+              id="ranksep-slider"
+              type="range"
+              min="0.5"
+              max="5.0"
+              step="0.1"
+              value={
+                typeof ranksepMultiplier === "number"
+                  ? ranksepMultiplier
+                  : DEFAULT_RANKSEP_MULTIPLIER
+              }
+              onChange={handleRanksepChange}
+              title={`Rank Separation Multiplier (Default: ${DEFAULT_RANKSEP_MULTIPLIER})`}
+            />
+          </div>
+          <div className="control-group">
+            <label htmlFor="nodesep-slider">
+              {/* --- Add Check Here --- */}
+              Node Sep (
+              {(typeof nodesepMultiplier === "number"
+                ? nodesepMultiplier
+                : DEFAULT_NODESEP_MULTIPLIER
+              ).toFixed(1)}
+              )
+            </label>
+            <input
+              id="nodesep-slider"
+              type="range"
+              min="0.2"
+              max="2.0"
+              step="0.1"
+              // Ensure value passed is stringifiable
+              value={
+                typeof nodesepMultiplier === "number"
+                  ? nodesepMultiplier
+                  : DEFAULT_NODESEP_MULTIPLIER
+              }
+              onChange={handleNodesepChange}
+              title={`Node Separation Multiplier (Default: ${DEFAULT_NODESEP_MULTIPLIER})`}
+            />
+          </div>
         </Panel>
       </ReactFlow>
     </div>
   );
+}
+
+export function getCssVariableOrDefault(
+  cssVar: string,
+  def: number,
+): {
+  value: number;
+} {
+  const style = getComputedStyle(document.documentElement);
+  const value = style.getPropertyValue(cssVar).trim();
+
+  const width = parseFloat(value);
+
+  return {
+    width: isNaN(width) ? def : width,
+  };
 }
