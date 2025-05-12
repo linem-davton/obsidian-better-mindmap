@@ -15,20 +15,28 @@ import "reactflow/dist/style.css";
 import { MindNode } from "../../parser/parseOutline.ts";
 import { toReactFlow } from "./toReactFlow";
 
-type Props = { tree: MindNode[]; onLinkClick: (target: string) => void };
+type Props = {
+  tree: MindNode[];
+  onLinkClick: (target: string) => void;
+  resetViewTrigger?: number;
+};
 
 /* Top-level export: provides the zustand context */
-export function MindCanvas({ tree, onLinkClick }: Props) {
+export function MindCanvas({ tree, onLinkClick, resetViewTrigger }: Props) {
   return (
     <ReactFlowProvider>
-      <FlowContent tree={tree} onLinkClick={onLinkClick} />
+      <FlowContent
+        tree={tree}
+        onLinkClick={onLinkClick}
+        resetViewTrigger={resetViewTrigger}
+      />
     </ReactFlowProvider>
   );
 }
 
 /* actual graph logic ------------------------------------------------*/
 // Handles Node collapse, highlight on select, and Mouse Hover logic
-function FlowContent({ tree, onLinkClick }: Props) {
+function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<MindNode>[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -48,6 +56,17 @@ function FlowContent({ tree, onLinkClick }: Props) {
   const handleNodeClick: OnNodeClick = useCallback((_, node) => {
     setSelectedId(node.id);
   }, []);
+
+  // --- Reset View Logic ---
+  useEffect(() => {
+    console.log(resetViewTrigger, typeof resetViewTrigger);
+    // Only run if the trigger prop is a number and > 0 (avoid initial mount)
+    if (typeof resetViewTrigger === "number" && resetViewTrigger > 0) {
+      console.log("ReactFlow: Resetting view trigger.", resetViewTrigger);
+      setCollapsed(new Set());
+      setSelectedId(null);
+    }
+  }, [resetViewTrigger, setCollapsed, setSelectedId]);
 
   useEffect(() => {
     // 1. prune outline based on collapsed

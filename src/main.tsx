@@ -15,5 +15,27 @@ export default class BetterMindmap extends Plugin {
           active: true,
         }),
     });
+
+    // --- Command to RESET the active view ---
+    this.addCommand({
+      id: "reset-mindmap-view",
+      name: "Reset Mind Map View",
+      // Use checkCallback to only enable/run when a mind map view is active
+      checkCallback: (checking: boolean) => {
+        const activeMindMapView =
+          this.app.workspace.getActiveViewOfType(ReactMindView);
+        if (activeMindMapView) {
+          // If Obsidian is just checking if the command should be enabled
+          if (checking) {
+            return true;
+          }
+          // If Obsidian is actually running the command
+          activeMindMapView.resetView(); // <-- Call the public reset method
+          return true; // Indicate the command was successful
+        }
+        // If no active mind map view, disable the command
+        return false;
+      },
+    });
   }
 }

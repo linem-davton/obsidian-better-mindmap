@@ -13,7 +13,7 @@ export class MindView {
   public parseMarkdown(md: string) {
     this.tree = parseOutline(md);
   }
-  public getView(rootName: string, id: string) {
+  public getView(rootName: string, id: string, resetViewTrigger: number) {
     this.root = {
       id: "root",
       text: rootName,
@@ -25,6 +25,7 @@ export class MindView {
         key={{ id }}
         tree={[this.root]}
         onLinkClick={this.linkClickHandler}
+        resetViewTrigger={resetViewTrigger}
       />
     );
   }
