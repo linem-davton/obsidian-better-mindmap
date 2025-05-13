@@ -1,4 +1,5 @@
-import { parseOutline, MindNode } from "../parser/parseOutline.ts";
+import { parseOutline } from "../parser/parseOutline.ts";
+import { MindNode } from "../parser/types";
 import { MindCanvas } from "../ui/canvas/MindCanvas.tsx";
 
 export class MindView {

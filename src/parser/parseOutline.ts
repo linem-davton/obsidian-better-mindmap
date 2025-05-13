@@ -1,31 +1,10 @@
-// ---------------------------------------------------------------------------------
-// I. COMMON TYPES & UTILITIES
-// ---------------------------------------------------------------------------------
+import { MindNode, NodeKind, ParsedHeading, ParsedBullet } from "./types";
 
-export type NodeKind =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "h6"
-  | "bullet"
-  | "image"
-  | "quote"
-  | "code"
-  | "task"
-  | "link"
-  | "unknown"
-  | "math";
-
-export interface MindNode {
-  id: string;
-  text: string;
-  level: number;
-  kind: NodeKind;
-  children: MindNode[];
-}
+// UTILITIES
 export function childId(parentId: string, index: number): string {
+  const effectiveParentId =
+    parentId === "root" || !parentId ? "root" : parentId;
+  if (effectiveParentId === "root" && parentId === "") return `${index}`;
   return parentId ? `${parentId}-${index}` : `${index}`;
 }
 
@@ -39,15 +18,7 @@ export function indentUnits(
   return Math.floor(indentStr.length / spacesPerIndent);
 }
 
-// ---------------------------------------------------------------------------------
-// II. HEADING PARSER
-// ---------------------------------------------------------------------------------
-
-export interface ParsedHeading {
-  text: string;
-  level: number;
-}
-
+// PARSERS
 export function parseHeadingLine(line: string): ParsedHeading | null {
   const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
   if (headingMatch) {
@@ -57,15 +28,6 @@ export function parseHeadingLine(line: string): ParsedHeading | null {
     };
   }
   return null;
-}
-
-// ---------------------------------------------------------------------------------
-// III. BULLET PARSER
-// ---------------------------------------------------------------------------------
-
-export interface ParsedBullet {
-  text: string;
-  indentation: number;
 }
 
 export function parseBulletLine(
@@ -82,128 +44,203 @@ export function parseBulletLine(
   return null;
 }
 
-// ---------------------------------------------------------------------------------
-// IV. MAIN OUTLINE PARSER (Refactored with fix for heading discontinuity)
-// ---------------------------------------------------------------------------------
-
+// MAIN OUTLINE PARSER
 export function parseOutline(
   md: string,
   spacesPerIndentForBullets: number = 2,
 ): MindNode[] {
-  const root: MindNode = { id: "", text: "ROOT", level: 0, children: [] };
-  const stack: MindNode[] = [root]; // stack[0] is root. stack[level] is last node at that tree level.
-  let bulletBaseDepth = 1; // Default level for a 0-indent bullet if no preceding heading.
-  // More accurately: stack[bulletBaseDepth-1] is the heading owning current bullets.
+  const root: MindNode = {
+    id: "root",
+    text: "ROOT",
+    level: 0,
+    kind: "unknown",
+    children: [],
+  };
+  const parentContextStack: MindNode[] = [root];
+  let currentHeadingContext: MindNode = root;
 
   const calculateBulletIndent = (s: string) =>
     indentUnits(s, spacesPerIndentForBullets);
+  const tabWidth = 4;
+  const lines = md.split("\n");
 
-  md.split("\n").forEach((rawLine) => {
-    const line = rawLine.trimEnd();
-    if (!line) return;
+  for (const rawLine of lines) {
+    const tabLine = rawLine.replace(/\t/g, " ".repeat(tabWidth));
+    const line = tabLine.trimEnd();
+    if (!line) continue;
 
     const parsedHeading = parseHeadingLine(line);
     if (parsedHeading) {
-      const newHeadingNodeLevel = parsedHeading.level; // This is Hx level (1-6) and target tree level.
-      let determinedParentNode = root;
+      const headingMarkdownLevel = parsedHeading.level;
+      const nodeTreeLevel = headingMarkdownLevel;
 
-      // 1. Find the closest structural ancestor level in the current stack.
-      let structuralParentCandidateActualLevel = -1; // The actual tree level of the candidate.
-      for (let lvl = newHeadingNodeLevel - 1; lvl >= 0; lvl--) {
-        if (stack[lvl]) {
-          structuralParentCandidateActualLevel = lvl;
-          break;
-        }
-      }
-
-      if (structuralParentCandidateActualLevel === -1) {
-        // No ancestor other than root found (e.g. first H1).
-        determinedParentNode = root;
-      } else {
-        const structuralParentCandidateNode =
-          stack[structuralParentCandidateActualLevel];
-
-        // 2. Check if this structural parent is part of a "too deep" bullet context
-        //    relative to the new heading.
-        const owningHeadingNodeForCurrentBullets = stack[bulletBaseDepth - 1];
-
-        // Conditions for new heading to attach to owningHeadingNodeForCurrentBullets:
-        // a) There IS an owning heading for the current bullet context.
-        // b) The structural parent candidate is AT or DEEPER than this owning heading.
-        // c) The structural parent candidate is NOT the owning heading itself (i.e., it's likely a bullet).
-        // d) The new heading is intended to be DEEPER than the owning heading.
-        if (
-          owningHeadingNodeForCurrentBullets &&
-          structuralParentCandidateNode.level >=
-            owningHeadingNodeForCurrentBullets.level &&
-          structuralParentCandidateNode !==
-            owningHeadingNodeForCurrentBullets &&
-          newHeadingNodeLevel > owningHeadingNodeForCurrentBullets.level
-        ) {
-          // The new heading should attach to the owningHeadingNodeForCurrentBullets,
-          // effectively "breaking out" of the bullet list.
-          // We must also ensure owningHeadingNodeForCurrentBullets.level < newHeadingNodeLevel for valid parenting.
-          if (owningHeadingNodeForCurrentBullets.level < newHeadingNodeLevel) {
-            determinedParentNode = owningHeadingNodeForCurrentBullets;
-          } else {
-            // This is an edge case, e.g., H2, then its bullet B1 (level 3), then a new H2.
-            // owningHeadingNodeForCurrentBullets.level (2) is NOT < newHeadingNodeLevel (2).
-            // In this scenario, the structuralParentCandidateNode (which would be H2's parent) is correct.
-            determinedParentNode = structuralParentCandidateNode;
+      let parentNodeForHeading = root;
+      for (
+        let i = Math.min(nodeTreeLevel - 1, parentContextStack.length - 1);
+        i >= 0;
+        i--
+      ) {
+        const candidate = parentContextStack[i];
+        if (candidate) {
+          if (
+            (candidate.kind === "unknown" || candidate.kind.startsWith("h")) &&
+            candidate.level < nodeTreeLevel
+          ) {
+            parentNodeForHeading = candidate;
+            break;
           }
-        } else {
-          // Standard case: structural parent is suitable, or new heading is shallower than current bullet context.
-          determinedParentNode = structuralParentCandidateNode;
         }
       }
 
-      const index = determinedParentNode.children.length;
-      const node: MindNode = {
-        id: childId(determinedParentNode.id, index),
+      const newHeadingNode: MindNode = {
+        id: childId(
+          parentNodeForHeading.id,
+          parentNodeForHeading.children.length,
+        ),
         text: parsedHeading.text,
-        level: newHeadingNodeLevel,
-        kind: `h${newHeadingNodeLevel}` as NodeKind,
+        level: nodeTreeLevel,
+        kind: `h${headingMarkdownLevel}` as NodeKind,
         children: [],
       };
 
-      determinedParentNode.children.push(node);
-
-      stack[newHeadingNodeLevel] = node;
-      // Crucially, prune the stack deeper than the new heading. This closes off old branches.
-      stack.length = newHeadingNodeLevel + 1;
-      // Subsequent bullets will be children of this new heading.
-      bulletBaseDepth = newHeadingNodeLevel + 1;
-      return; // Line processed as a heading
+      parentNodeForHeading.children.push(newHeadingNode);
+      parentContextStack[nodeTreeLevel] = newHeadingNode;
+      parentContextStack.length = nodeTreeLevel + 1;
+      currentHeadingContext = newHeadingNode;
+      continue;
     }
 
     const parsedBullet = parseBulletLine(line, calculateBulletIndent);
     if (parsedBullet) {
-      let bulletNodeLevel = bulletBaseDepth + parsedBullet.indentation;
+      // This is the stack index where the parent of a bullet with this indentation *would normally be found*.
+      // It's based on the bullet's indentation relative to the current heading.
+      const expectedParentStackIndex =
+        currentHeadingContext.level + parsedBullet.indentation;
+      let determinedParent: MindNode = currentHeadingContext; // Default parent
 
-      if (bulletNodeLevel >= stack.length && stack.length > 0) {
-        bulletNodeLevel = stack.length;
-      } else if (bulletNodeLevel <= 0) {
-        bulletNodeLevel = 1;
+      // Scenario 1: A valid parent candidate exists at the expectedParentStackIndex
+      if (
+        expectedParentStackIndex < parentContextStack.length &&
+        parentContextStack[expectedParentStackIndex]
+      ) {
+        const candidateAtStackIndex =
+          parentContextStack[expectedParentStackIndex];
+
+        if (
+          candidateAtStackIndex.level === expectedParentStackIndex && // Structural integrity
+          candidateAtStackIndex.level >= currentHeadingContext.level
+        ) {
+          // Is within current heading's branch
+
+          // Now, decide if candidateAtStackIndex is the direct parent, or if current bullet is its sibling
+          if (candidateAtStackIndex.kind === "bullet") {
+            // The item at the "parent slot" is another bullet (e.g., L3 A.1).
+            // If the current bullet (e.g., L3 A.2) has the same or shallower effective indentation
+            // than this candidate bullet (L3 A.1), it should be a sibling to L3 A.1.
+            // This means its parent is L3 A.1's parent (e.g., L1).
+            // We check if L3 A.1 is NOT a "more deeply nested structure" than L3 A.2 implies.
+            // A simple proxy: if current bullet's `parsedBullet.indentation` is not greater
+            // than candidate's `indentation` (if we had it).
+            // The current `expectedParentStackIndex` *is* the level of the candidate.
+            // If this candidate bullet is at the *exact level* our current bullet expects its parent to be,
+            // it implies our current bullet wants to be a sibling of this candidate.
+            // So, the actual parent is one level shallower in the stack.
+            if (
+              expectedParentStackIndex > currentHeadingContext.level && // Ensure parent is not heading itself unless indent=0
+              parentContextStack[expectedParentStackIndex - 1]
+            ) {
+              // And that shallower parent exists
+              determinedParent =
+                parentContextStack[expectedParentStackIndex - 1];
+            } else {
+              // This case means candidateAtStackIndex is L1 (indent 0) for an indent 1 bullet
+              // or currentHeadingContext if expectedParentStackIndex - 1 is invalid.
+              determinedParent = candidateAtStackIndex; // Fallback to the candidate if shallower parent doesn't make sense
+            }
+          } else {
+            // Candidate is the currentHeadingContext or some other non-bullet element.
+            // This is the direct parent.
+            determinedParent = candidateAtStackIndex;
+          }
+        } else {
+          // Candidate at stack index is not valid (e.g., wrong level, or from different branch).
+          // Fallback: search upwards from expectedParentStackIndex.
+          for (
+            let i = Math.min(
+              expectedParentStackIndex,
+              parentContextStack.length - 1,
+            );
+            i >= currentHeadingContext.level;
+            i--
+          ) {
+            if (parentContextStack[i] && parentContextStack[i].level === i) {
+              // Check integrity
+              determinedParent = parentContextStack[i];
+              break;
+            }
+          }
+        }
+      } else {
+        // Scenario 2: Stack is not deep enough for expectedParentStackIndex (initial indent jump like L3 A.1)
+        // or the slot is empty.
+        // Fallback: search upwards from where the parent was expected or end of stack.
+        for (
+          let i = Math.min(
+            expectedParentStackIndex,
+            parentContextStack.length - 1,
+          );
+          i >= currentHeadingContext.level;
+          i--
+        ) {
+          if (parentContextStack[i] && parentContextStack[i].level === i) {
+            // Check integrity
+            determinedParent = parentContextStack[i];
+            break;
+          }
+        }
       }
 
-      const parentIndex = Math.max(0, bulletNodeLevel - 1);
-      const parentNode = stack[parentIndex] || root;
+      // Final safety check for determinedParent
+      if (
+        !determinedParent ||
+        determinedParent.level >
+          currentHeadingContext.level + parsedBullet.indentation
+      ) {
+        // If determinedParent is deeper than allowed or null, default to currentHeadingContext
+        // or the deepest valid item in stack.
+        determinedParent = currentHeadingContext;
+        for (
+          let i = Math.min(
+            currentHeadingContext.level + parsedBullet.indentation,
+            parentContextStack.length - 1,
+          );
+          i >= currentHeadingContext.level;
+          i--
+        ) {
+          if (parentContextStack[i] && parentContextStack[i].level === i) {
+            determinedParent = parentContextStack[i];
+            break;
+          }
+        }
+      }
 
-      const index = parentNode.children.length;
-      const node: MindNode = {
-        id: childId(parentNode.id, index),
+      const actualBulletNodeLevel = determinedParent.level + 1;
+
+      const newBulletNode: MindNode = {
+        // CORRECTED: Use determinedParent
+        id: childId(determinedParent.id, determinedParent.children.length),
         text: parsedBullet.text,
-        level: bulletNodeLevel,
+        level: actualBulletNodeLevel,
         kind: "bullet",
         children: [],
       };
 
-      parentNode.children.push(node);
-
-      stack[bulletNodeLevel] = node;
-      stack.length = bulletNodeLevel + 1;
+      // CORRECTED: Use determinedParent
+      determinedParent.children.push(newBulletNode);
+      parentContextStack[actualBulletNodeLevel] = newBulletNode;
+      parentContextStack.length = actualBulletNodeLevel + 1;
+      continue;
     }
-  });
-
+  }
   return root.children;
 }

@@ -3,7 +3,7 @@ import React from "react";
 import dagre from "dagre";
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
-import { MindNode } from "../../parser/parseOutline.ts";
+import { MindNode } from "../../parser/types";
 import { Node, Edge } from "reactflow";
 
 import remarkMath from "remark-math";

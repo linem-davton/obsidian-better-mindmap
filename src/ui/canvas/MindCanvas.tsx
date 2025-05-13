@@ -14,7 +14,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { MindNode } from "../../parser/parseOutline.ts";
+import { MindNode } from "../../parser/types";
 import { toReactFlow, LayoutDirection } from "./toReactFlow";
 
 const DEFAULT_RANKSEP_MULTIPLIER = 2.5;

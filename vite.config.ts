@@ -23,4 +23,13 @@ export default defineConfig({
     outDir: "build", // see step 2
     emptyOutDir: true,
   },
+  test: {
+    globals: true,
+    environment: "node",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      include: ["src/**/*.ts"], // Ensure only src files are included in coverage
+    },
+  },
 });
