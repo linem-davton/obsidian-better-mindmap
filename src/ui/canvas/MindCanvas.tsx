@@ -47,6 +47,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>("TB");
+  const [collapseAll, setCollapseAll] = useState<boolean>(false);
 
   // --- State for UI controls and triggering layout updates ---
   const [ranksepMultiplier, setRanksepMultiplier] = useState<number>(() =>
@@ -76,7 +77,10 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
 
   // Set selection on click
   const handleNodeClick: OnNodeClick = useCallback((_, node) => {
-    setSelectedId(node.id);
+    setSelectedId((prev) => {
+      if (node.id === prev) return null; // Deselect if already selected
+      return node.id; // Select the clicked node
+    });
   }, []);
 
   // --- Reset View Logic ---
@@ -212,6 +216,20 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   const toggleButtonText =
     layoutDirection === "TB" ? "Horizontal Layout" : "Vertical Layout";
 
+  const collapseButtonText = collapseAll ? "Expand All" : "Collapse All";
+
+  // --- Collapse All Handler ---
+  // IF Collapse All is true, collapse all nodes
+  const handlecollapseAll = useCallback(() => {
+    setCollapsed((prev) => {
+      if (collapseAll) return new Set(); // Expand all
+      const newSet = new Set<string>();
+      nodes.forEach((n) => newSet.add(n.id)); // Collapse all
+      return newSet;
+    });
+    setCollapseAll((prev) => !prev); // Toggle collapse state
+  }, [nodes, collapseAll]);
+
   // --- Handlers for UI controls ---
   const handleRanksepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(event.target.value);
@@ -259,6 +277,12 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
               title={toggleButtonText} // Add tooltip
             >
               {toggleButtonText}
+            </button>
+            <button
+              onClick={handlecollapseAll}
+              title={collapseButtonText} // Add tooltip
+            >
+              {collapseButtonText}
             </button>
           </div>
 
