@@ -221,7 +221,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   // --- Collapse All Handler ---
   // IF Collapse All is true, collapse all nodes
   const handlecollapseAll = useCallback(() => {
-    setCollapsed((prev) => {
+    setCollapsed(() => {
       if (collapseAll) return new Set(); // Expand all
       const newSet = new Set<string>();
       nodes.forEach((n) => newSet.add(n.id)); // Collapse all
