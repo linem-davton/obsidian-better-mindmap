@@ -18,6 +18,10 @@
 .mindmap-container .react-flow__edge-path {
   stroke-width: 1.4px;
 }
+.mindmap-container .edge-highlighted .react-flow__edge-path {
+  stroke: var(--interactive-accent);
+  stroke-width: 2px;
+}
 
 /* base look for every mind-map node */
 .react-flow__node {

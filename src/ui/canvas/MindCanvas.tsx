@@ -186,11 +186,7 @@ function FlowContent({ app, sourcePath, tree, resetViewTrigger }: Props) {
           e.source === node.id || e.target === node.id
             ? {
                 ...e,
-                style: {
-                  ...e.style,
-                  stroke: "var(--interactive-accent)",
-                  strokeWidth: 2,
-                },
+                className: "edge-highlighted",
               }
             : e,
         ),
@@ -203,7 +199,7 @@ function FlowContent({ app, sourcePath, tree, resetViewTrigger }: Props) {
     setEdges((es) =>
       es.map((e) => ({
         ...e,
-        style: {}, // clear the override
+        className: "", // clear the override
       })),
     );
   }, [setEdges]);
