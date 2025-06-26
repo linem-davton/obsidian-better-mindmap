@@ -1,9 +1,9 @@
-import { ItemView, WorkspaceLeaf, TFile, App } from "obsidian";
+import { ItemView, WorkspaceLeaf, TFile } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
 
 import { VIEW_TYPE } from "../constants";
-import { MindView, LinkClickHandler } from "./CoreView.tsx"; // Assuming these are your core view components
+import { MindView } from "./CoreView.tsx"; // Assuming these are your core view components
 
 // Has Dependency on Obsidian
 // Adapter for Obsidian
@@ -38,8 +38,7 @@ export class ReactMindView extends ItemView {
     this.root = createRoot(contentEl);
 
     // Assuming ObsidianLinkHandler is defined elsewhere and works as before
-    const linkHandler = new ObsidianLinkHandler(this.app, this.leaf);
-    this.mindView = new MindView(linkHandler);
+    this.mindView = new MindView();
 
     // Initial load with the currently active file, if any
     const firstFile = this.app.workspace.getActiveFile();
@@ -139,22 +138,5 @@ export class ReactMindView extends ItemView {
     );
 
     this.root.render(React.createElement(React.Fragment, null, reactElement));
-  }
-}
-
-// Dummy Link Handler class to make the example self-contained
-class ObsidianLinkHandler implements LinkClickHandler {
-  constructor(
-    private app: App,
-    private currentLeaf: WorkspaceLeaf,
-  ) {}
-  handleInternalLink(href: string): void {
-    this.app.workspace.openLinkText(
-      href,
-      this.currentLeaf.view.getState()?.file ?? "",
-    );
-  }
-  handleExternalLink(href: string): void {
-    window.open(href, "_blank");
   }
 }

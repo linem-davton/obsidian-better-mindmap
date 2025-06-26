@@ -5,11 +5,6 @@ import { App, TFile } from "obsidian";
 
 export class MindView {
   private tree: MindNode[];
-  private linkHandler: LinkClickHandler;
-
-  constructor(linkHandler: LinkClickHandler) {
-    this.linkHandler = linkHandler;
-  }
 
   public parseMarkdown(app: App, file: TFile, md: string) {
     this.tree = parseMindMapWithCache(app, file, md);
@@ -33,7 +28,6 @@ export class MindView {
         app={app}
         sourcePath={sourcePath}
         tree={[root]}
-        onLinkClick={this.linkClickHandler}
         resetViewTrigger={resetViewTrigger}
       />
     );
@@ -47,9 +41,4 @@ export class MindView {
       this.linkHandler.handleInternalLink(href);
     }
   };
-}
-
-export interface LinkClickHandler {
-  handleInternalLink(href: string): void;
-  handleExternalLink(href: string): void;
 }
