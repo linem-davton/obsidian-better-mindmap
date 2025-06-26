@@ -1,21 +1,56 @@
 // src/ui/Canvas/toReactFlow.tsx
-import React from "react";
 import dagre from "dagre";
-import ReactMarkdown from "react-markdown";
-import gfm from "remark-gfm";
 import { MindNode } from "../../parser/types";
 import { Node, Edge } from "reactflow";
-
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
+import { App, MarkdownRenderer } from "obsidian";
+import { useEffect, useRef } from "react";
 
 import "katex/dist/katex.min.css";
 
 export type LayoutDirection = "TB" | "LR";
 
+// This is the new wrapper component for Obsidian's MarkdownRenderer.
+const ObsidianMarkdownRenderer = ({
+  app,
+  markdown,
+  sourcePath = "",
+}: {
+  app: App;
+  markdown: string;
+  sourcePath?: string;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.innerHTML = "";
+      // Use Obsidian's native renderer. It will automatically handle
+      MarkdownRenderer.render(app, markdown, container, sourcePath, {});
+      // --- ADDED LINK HANDLING LOGIC ---
+      const links = container.querySelectorAll("a.internal-link");
+      links.forEach((link) => {
+        const anchor = link as HTMLAnchorElement;
+        // Obsidian stores the link target in the 'data-href' attribute
+        const href = anchor.dataset.href;
+        if (href) {
+          anchor.addEventListener("click", (e) => {
+            e.preventDefault(); // Prevent default navigation
+            // Use the workspace API to open the link in a new tab/leaf
+            app.workspace.openLinkText(href, sourcePath);
+          });
+        }
+      });
+    }
+  }, [app, markdown, sourcePath]); // Re-run effect if props change
+
+  return <div ref={containerRef} />;
+};
+
 export function toReactFlow(
+  app: App,
+  sourcePath: string,
   children: MindNode[],
-  onLinkClick: (target: string) => void,
   layoutDirection: LayoutDirection = "TB",
 ) {
   const { width: WIDTH, height: HEIGHT } = getReactFlowNodeSizeFromCSS();
@@ -62,32 +97,16 @@ export function toReactFlow(
   g.nodes().forEach((id) => {
     if (id === "_root") return; // skip fake root
     const { x, y, label } = g.node(id);
-    const md = wikiToMd(label);
     nodes.push({
       id,
       position: { x, y },
       data: {
         label: (
-          <ReactMarkdown
-            remarkPlugins={[gfm, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
-            components={{
-              a: ({ href, children }) => (
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onLinkClick(href!);
-                  }}
-                  style={{ cursor: "pointer", textDecoration: "underline" }}
-                >
-                  {children}
-                </a>
-              ),
-            }}
-          >
-            {md}
-          </ReactMarkdown>
+          <ObsidianMarkdownRenderer
+            app={app}
+            markdown={label}
+            sourcePath={sourcePath}
+          />
         ),
       },
     });
@@ -99,22 +118,6 @@ export function toReactFlow(
   });
 
   return { nodes, edges };
-}
-
-/**
- * Convert Obsidian-style [[Link|Alias]] into Markdown [Alias](Link),
- * URI-encoding the target so spaces/specials don’t break link syntax.
- */
-function wikiToMd(raw: string): string {
-  return raw.replace(
-    /\[\[([^\|\]]+?)(?:\|([^\]]+?))?\]\]/g,
-    (_match, target, alias) => {
-      const label = alias || target;
-      // encode spaces/special chars so Markdown sees a valid link
-      const href = encodeURI(target.trim());
-      return `[${label}](${href})`;
-    },
-  );
 }
 
 export function getReactFlowNodeSizeFromCSS(): {

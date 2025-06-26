@@ -1,21 +1,27 @@
-import { parseOutline } from "../parser/parseOutline.ts";
+import { parseMindMapWithCache } from "../parser/parseOutline.ts";
 import { MindNode } from "../parser/types";
 import { MindCanvas } from "../ui/canvas/MindCanvas.tsx";
+import { App, TFile } from "obsidian";
 
 export class MindView {
   private tree: MindNode[];
-  private root: MindNode;
   private linkHandler: LinkClickHandler;
 
   constructor(linkHandler: LinkClickHandler) {
     this.linkHandler = linkHandler;
   }
 
-  public parseMarkdown(md: string) {
-    this.tree = parseOutline(md);
+  public parseMarkdown(app: App, file: TFile, md: string) {
+    this.tree = parseMindMapWithCache(app, file, md);
   }
-  public getView(rootName: string, id: string, resetViewTrigger: number) {
-    this.root = {
+  public getView(
+    app: App,
+    sourcePath: string,
+    rootName: string,
+    id: string,
+    resetViewTrigger: number,
+  ) {
+    let root = {
       id: "root",
       text: rootName,
       level: 0,
@@ -24,7 +30,9 @@ export class MindView {
     return (
       <MindCanvas
         key={{ id }}
-        tree={[this.root]}
+        app={app}
+        sourcePath={sourcePath}
+        tree={[root]}
         onLinkClick={this.linkClickHandler}
         resetViewTrigger={resetViewTrigger}
       />

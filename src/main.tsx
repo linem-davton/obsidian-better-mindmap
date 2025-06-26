@@ -8,7 +8,7 @@ export default class BetterMindmap extends Plugin {
     this.registerView(VIEW_TYPE, (leaf) => new ReactMindView(leaf));
     this.addCommand({
       id: "open-mindmap",
-      name: "Open Mind‑Map",
+      name: "Open mind map",
       callback: () =>
         this.app.workspace.getLeaf(true).setViewState({
           type: VIEW_TYPE,
@@ -19,7 +19,7 @@ export default class BetterMindmap extends Plugin {
     // --- Command to RESET the active view ---
     this.addCommand({
       id: "reset-mindmap-view",
-      name: "Reset Mind Map View",
+      name: "Reset mind map view",
       // Use checkCallback to only enable/run when a mind map view is active
       checkCallback: (checking: boolean) => {
         const activeMindMapView =

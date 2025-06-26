@@ -13,7 +13,7 @@ import ReactFlow, {
   useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-
+import { App } from "obsidian";
 import { MindNode } from "../../parser/types";
 import { toReactFlow, LayoutDirection } from "./toReactFlow";
 
@@ -21,18 +21,20 @@ const DEFAULT_RANKSEP_MULTIPLIER = 2.5;
 const DEFAULT_NODESEP_MULTIPLIER = 0.6;
 
 type Props = {
+  app: App;
+  sourcePath: string;
   tree: MindNode[];
-  onLinkClick: (target: string) => void;
   resetViewTrigger?: number;
 };
 
 /* Top-level export: provides the zustand context */
-export function MindCanvas({ tree, onLinkClick, resetViewTrigger }: Props) {
+export function MindCanvas({ app, sourcePath, tree, resetViewTrigger }: Props) {
   return (
     <ReactFlowProvider>
       <FlowContent
+        app={app}
+        sourcePath={sourcePath}
         tree={tree}
-        onLinkClick={onLinkClick}
         resetViewTrigger={resetViewTrigger}
       />
     </ReactFlowProvider>
@@ -41,7 +43,7 @@ export function MindCanvas({ tree, onLinkClick, resetViewTrigger }: Props) {
 
 /* actual graph logic ------------------------------------------------*/
 // Handles Node collapse, highlight on select, and Mouse Hover logic
-function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
+function FlowContent({ app, sourcePath, tree, resetViewTrigger }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<MindNode>[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -104,8 +106,9 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
 
     // 2. compute new layout
     const { nodes: nextNodes, edges: nextEdges } = toReactFlow(
+      app,
+      sourcePath,
       pruned,
-      onLinkClick,
       layoutDirection,
     );
 
@@ -170,7 +173,6 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
     tree,
     collapsed,
     selectedId,
-    onLinkClick,
     layoutDirection,
     layoutConfigTrigger,
     setNodes,
@@ -214,9 +216,9 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
   }, []);
 
   const toggleButtonText =
-    layoutDirection === "TB" ? "Horizontal Layout" : "Vertical Layout";
+    layoutDirection === "TB" ? "Horizontal layout" : "Vertical layout";
 
-  const collapseButtonText = collapseAll ? "Expand All" : "Collapse All";
+  const collapseButtonText = collapseAll ? "Expand all" : "Collapse all";
 
   // --- Collapse All Handler ---
   // IF Collapse All is true, collapse all nodes
@@ -288,7 +290,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
 
           <div className="control-group">
             <label htmlFor="ranksep-slider">
-              Rank Sep (
+              Rank sep (
               {(typeof ranksepMultiplier === "number"
                 ? ranksepMultiplier
                 : DEFAULT_RANKSEP_MULTIPLIER
@@ -307,13 +309,13 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
                   : DEFAULT_RANKSEP_MULTIPLIER
               }
               onChange={handleRanksepChange}
-              title={`Rank Separation Multiplier (Default: ${DEFAULT_RANKSEP_MULTIPLIER})`}
+              title={`Rank separation multiplier (default: ${DEFAULT_RANKSEP_MULTIPLIER})`}
             />
           </div>
           <div className="control-group">
             <label htmlFor="nodesep-slider">
               {/* --- Add Check Here --- */}
-              Node Sep (
+              Node sep (
               {(typeof nodesepMultiplier === "number"
                 ? nodesepMultiplier
                 : DEFAULT_NODESEP_MULTIPLIER
@@ -333,7 +335,7 @@ function FlowContent({ tree, onLinkClick, resetViewTrigger }: Props) {
                   : DEFAULT_NODESEP_MULTIPLIER
               }
               onChange={handleNodesepChange}
-              title={`Node Separation Multiplier (Default: ${DEFAULT_NODESEP_MULTIPLIER})`}
+              title={`Node separation multiplier (default: ${DEFAULT_NODESEP_MULTIPLIER})`}
             />
           </div>
         </Panel>

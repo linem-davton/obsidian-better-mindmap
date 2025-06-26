@@ -15,7 +15,7 @@
   overflow: hidden;
 }
 
-.react-flow__edge-path {
+.mindmap-container .react-flow__edge-path {
   stroke-width: 1.4px;
 }
 
@@ -39,20 +39,20 @@
 }
 
 /* hover highlight */
-.react-flow__node:hover {
+.mindmap-container .react-flow__node:hover {
   border: 2px solid var(--interactive-accent);
   box-shadow: 0 0 4px var(--interactive-accent);
 }
 
 /* selected highlight */
-.react-flow__node.selected-node {
+.mindmap-container .react-flow__node.selected-node {
   background-color: var(--interactive-normal);
   border: 4px solid var(--interactive-accent);
   box-shadow: 0 0 1px var(--interactive-accent);
 }
 
 /* collapsed nodes get a light fill */
-.react-flow__node.collapsed-node {
+.mindmap-container .react-flow__node.collapsed-node {
   background-color: var(--background-modifier-secondary);
   border: 2px dashed var(--background-modifier-border);
   opacity: 0.85;
@@ -62,18 +62,18 @@
 }
 
 /* children of the selected node */
-.react-flow__node.selected-child {
+.mindmap-container .react-flow__node.selected-child {
   /* use Obsidian’s muted text color for the border */
   border: 2px solid var(--interactive-accent);
 }
 
 /* highlight edges connected to hovered node */
-.react-flow__edge-path.edge-highlight {
+.mindmap-container .react-flow__edge-path.edge-highlight {
   stroke: red;
   stroke-width: 20px;
 }
 
-.react-flow__edge.selected-edge path {
+.mindmap-container .react-flow__edge.selected-edge path {
   stroke: var(--interactive-accent);
   stroke-width: 2px;
 }
