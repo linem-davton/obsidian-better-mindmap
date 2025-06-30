@@ -2,7 +2,7 @@
 import dagre from "dagre";
 import { MindNode } from "../../parser/types";
 import { Node, Edge } from "reactflow";
-import { App, MarkdownRenderer } from "obsidian";
+import { App, MarkdownRenderer, Component } from "obsidian";
 import { useEffect, useRef } from "react";
 
 import "katex/dist/katex.min.css";
@@ -25,8 +25,11 @@ const ObsidianMarkdownRenderer = ({
     const container = containerRef.current;
     if (container) {
       container.innerHTML = "";
+      // Create a new Obsidian Component to manage the lifecycle of the rendered markdown.
+      // This is crucial for preventing memory leaks.
+      const component = new Component();
       // Use Obsidian's native renderer. It will automatically handle
-      MarkdownRenderer.render(app, markdown, container, sourcePath, {});
+      MarkdownRenderer.render(app, markdown, container, sourcePath, component);
       // --- ADDED LINK HANDLING LOGIC ---
       const links = container.querySelectorAll("a.internal-link");
       links.forEach((link) => {
@@ -41,6 +44,10 @@ const ObsidianMarkdownRenderer = ({
           });
         }
       });
+      // Cleam up everything created by MarkdownRenderer
+      return () => {
+        component.unload();
+      };
     }
   }, [app, markdown, sourcePath]); // Re-run effect if props change
 
