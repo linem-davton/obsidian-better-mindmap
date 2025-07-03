@@ -24,7 +24,7 @@ const ObsidianMarkdownRenderer = ({
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
-      container.innerHTML = "";
+      container.empty(); // Clear previous content
       // Create a new Obsidian Component to manage the lifecycle of the rendered markdown.
       // This is crucial for preventing memory leaks.
       const component = new Component();
