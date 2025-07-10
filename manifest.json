@@ -4,7 +4,7 @@
   "version": "1.0.16",
   "minAppVersion": "1.5.0",
   "author": "Utkarsh Raj",
-  "description": "Mind‑map plugin to preview notes",
+  "description": "Visualize notes as interactive mind maps",
   "authorUrl": "https://github.com/linem-davton",
   "isDesktopOnly": true
 }
