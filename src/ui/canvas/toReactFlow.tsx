@@ -2,7 +2,7 @@
 import dagre from "dagre";
 import { MindNode } from "../../parser/types";
 import { Node, Edge } from "reactflow";
-import { App, MarkdownRenderer, Component } from "obsidian";
+import { App, MarkdownRenderer, Component, Menu } from "obsidian";
 import { useEffect, useRef } from "react";
 
 import "katex/dist/katex.min.css";
@@ -43,6 +43,31 @@ const ObsidianMarkdownRenderer = ({
             app.workspace.openLinkText(href, sourcePath);
           });
         }
+        component.registerDomEvent(anchor, "contextmenu", (e: MouseEvent) => {
+          if (href) {
+            const menu = new Menu();
+
+            menu.addItem((item) =>
+              item
+                .setTitle("Open in new tab")
+                .setIcon("file-plus")
+                .onClick(() => {
+                  app.workspace.openLinkText(href, sourcePath, true);
+                }),
+            );
+
+            menu.addItem((item) =>
+              item
+                .setTitle("Open to the right")
+                .setIcon("separator-vertical")
+                .onClick(() => {
+                  app.workspace.openLinkText(href, sourcePath, "split");
+                }),
+            );
+
+            menu.showAtMouseEvent(e);
+          }
+        });
       });
       // Cleam up everything created by MarkdownRenderer
       return () => {
