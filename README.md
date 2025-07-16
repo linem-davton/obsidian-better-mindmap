@@ -48,7 +48,7 @@ Visualize your Markdown outlines as interactive, dynamic mind maps within Obsidi
 
 1.  Ensure Obsidian's Community Plugins are enabled (`Settings` -> `Community Plugins` -> `Turn on community plugins`).
 2.  Click `Browse` community plugins.
-3.  Search for "Better Mindmap".
+3.  Search for "Better mind map".
 4.  Click `Install`.
 5.  Once installed, click `Enable`.
 
